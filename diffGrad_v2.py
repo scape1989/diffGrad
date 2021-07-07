@@ -1,4 +1,4 @@
-# This diffGrad implementation has a bug. Use diffGrad_v2.py.
+# Fixes a bug in original diffGrad code
 import math
 import torch
 from torch.optim.optimizer import Optimizer
@@ -8,9 +8,7 @@ import torch.nn as nn
 
 class diffgrad(Optimizer):
     r"""Implements diffGrad algorithm. It is modified from the pytorch implementation of Adam.
-
     It has been proposed in `diffGrad: An Optimization Method for Convolutional Neural Networks`_.
-
     Arguments:
         params (iterable): iterable of parameters to optimize or dicts defining
             parameter groups
@@ -23,7 +21,6 @@ class diffgrad(Optimizer):
         amsgrad (boolean, optional): whether to use the AMSGrad variant of this
             algorithm from the paper `On the Convergence of Adam and Beyond`_
             (default: False)
-
     .. _diffGrad: An Optimization Method for Convolutional Neural Networks:
         https://arxiv.org/abs/1909.11015
     .. _Adam\: A Method for Stochastic Optimization:
@@ -49,7 +46,6 @@ class diffgrad(Optimizer):
 
     def step(self, closure=None):
         """Performs a single optimization step.
-
         Arguments:
             closure (callable, optional): A closure that reevaluates the model
                 and returns the loss.
@@ -97,9 +93,10 @@ class diffgrad(Optimizer):
                 # compute diffgrad coefficient (dfc)
                 diff = abs(previous_grad - grad)
                 dfc = 1. / (1. + torch.exp(-diff))
-                state['previous_grad'] = grad # used in paper but has the bug that previous grad is overwritten with grad and diff becomes always zero. Fixed in the next line.
-                		
-		# update momentum with dfc
+                #state['previous_grad'] = grad %used in paper but has the bug that previous grad is overwritten with grad and diff becomes always zero. Fixed in the next line.
+                state['previous_grad'] = grad.clone()
+				
+				# update momentum with dfc
                 exp_avg1 = exp_avg * dfc
 
                 step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
